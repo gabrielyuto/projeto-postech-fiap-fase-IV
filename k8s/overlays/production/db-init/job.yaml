@@ -1,0 +1,42 @@
+# Job de execução única: aplica o mesmo schema usado em desenvolvimento
+# (k8s/base/postgres-init) contra a instância RDS real, usando credenciais
+# administrativas aplicadas fora do Git. Sync (nao PreSync) permite que o
+# ConfigMap com os scripts exista antes do Job.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-schema-init
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: psql-init
+          image: postgres:16
+          envFrom:
+            - secretRef:
+                name: postgres-admin-secret
+          env:
+            - name: PGSSLMODE
+              value: require
+          command:
+            - bash
+            - -c
+            - |
+              set -euo pipefail
+              for f in /scripts/*.sql; do
+                echo "Aplicando $f..."
+                psql "host=$POSTGRES_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require password=$POSTGRES_PASSWORD" -v ON_ERROR_STOP=1 -f "$f"
+              done
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: postgres-init-scripts
