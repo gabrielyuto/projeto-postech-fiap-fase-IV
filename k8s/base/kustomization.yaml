@@ -5,9 +5,9 @@ kind: Kustomization
 # endpoints de infraestrutura (banco, cache, fila) são responsabilidade
 # de cada overlay em k8s/overlays/<ambiente>.
 resources:
-  - auth-service
-  - flag-service
-  - targeting-service
-  - evaluation-service
-  - analytics-service
-  - postgres-init
+  - services/auth-service
+  - services/flag-service
+  - services/targeting-service
+  - services/evaluation-service
+  - services/analytics-service
+  - database/postgres-init

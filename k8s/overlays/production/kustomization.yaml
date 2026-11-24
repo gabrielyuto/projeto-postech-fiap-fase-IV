@@ -5,11 +5,11 @@ namespace: production
 
   # Secrets criptografados com kubeseal; só o controller do cluster descriptografa.
 resources:
-- namespace.yaml
 - ../../base
-- db-init
+- namespace.yaml
 - ingress.yaml
 - middleware.yaml
+- jobs/postgres-schema-init
 - sealed-secrets/auth-service-secret.yaml
 - sealed-secrets/flag-service-secret.yaml
 - sealed-secrets/targeting-service-secret.yaml
